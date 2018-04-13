@@ -47,15 +47,38 @@ const Upload = Vue.component("upload-form", {
     template: `
     <div>
         <h1>Upload Photo</h1>
-        <form>
+        <form id="uploadForm" @submit.prevent="UploadForm" enctype="multipart/form-data">
             <label>Description:</label><br/>
-            <textarea></textarea><br/>
+            <textarea name='description'></textarea><br/>
             <label for='photo' class='btn btn-primary'>Browse....</label>
-            <input type="file" style="display: none"/><br/>
+            <input id="photo" type="file" name='photo' style="display: none"/><br/>
             <input type="submit" value="Upload" class="btn btn-success"/>
         </form>
     </div>
-    `
+    `,
+    methods: {
+        UploadForm: function(){
+            let uploadForm = document.getElementById('uploadForm');
+            let form_data = new FormData(uploadForm);
+            
+            fetch("/api/upload", {
+                method: "POST",
+                body: form_data,
+                headers: {
+                    'X-CSRFToken': token
+                    },
+                credentials: 'same-origin'
+            }).then(function(response){
+                return response.json();
+            }).then(function (jsonResponse) {
+                // display a success message
+                console.log(jsonResponse);
+             })
+             .catch(function (error) {
+                console.log(error);
+             });
+        }
+    }
 });
 
 // Define Routes
