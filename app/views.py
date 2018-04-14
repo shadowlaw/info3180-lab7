@@ -28,7 +28,6 @@ def uploads():
     
     form = UploadForm()
     
-    print(form.description.data)
     
     if form.validate_on_submit():
         description = form.description.data

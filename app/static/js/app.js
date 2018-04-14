@@ -46,18 +46,36 @@ const Home = Vue.component('home', {
 const Upload = Vue.component("upload-form", {
     template: `
     <div>
+        <div v-if='messageFlag' >
+        
+            <div v-if="!errorFlag ">
+                <div class="alert alert-success" >
+                    {{ message }}
+                </div>
+            </div>
+            <div v-else >
+                <ul class="alert alert-danger">
+                    <li v-for="error in message">
+                        {{ error }}
+                    </li>
+                </ul>
+            </div>
+            
+        </div>
+        
         <h1>Upload Photo</h1>
         <form id="uploadForm" @submit.prevent="UploadForm" enctype="multipart/form-data">
             <label>Description:</label><br/>
             <textarea name='description'></textarea><br/>
-            <label for='photo' class='btn btn-primary'>Browse....</label>
-            <input id="photo" type="file" name='photo' style="display: none"/><br/>
+            <label for='photo' class='btn btn-primary'>Browse....</label> <span>{{ filename }}</span>
+            <input id="photo" type="file" name='photo' style="display: none" v-on:change = "onFileSelected" /><br/>
             <input type="submit" value="Upload" class="btn btn-success"/>
         </form>
     </div>
     `,
     methods: {
         UploadForm: function(){
+            let self = this
             let uploadForm = document.getElementById('uploadForm');
             let form_data = new FormData(uploadForm);
             
@@ -72,11 +90,42 @@ const Upload = Vue.component("upload-form", {
                 return response.json();
             }).then(function (jsonResponse) {
                 // display a success message
-                console.log(jsonResponse);
+                self.messageFlag = true
+                
+                if (jsonResponse.hasOwnProperty("errors")){
+                    self.errorFlag=true;
+                    self.message = jsonResponse.errors;
+                }else if(jsonResponse.hasOwnProperty("message")){
+                    self.errorFlag = false;
+                    self.message = "File Upload Successful";
+                    self.cleanForm();
+                }
              })
              .catch(function (error) {
                 console.log(error);
              });
+        },
+        cleanForm : function(){
+            let form =$("#uploadForm")[0];
+            let self = this;
+            
+            form.description.value = "";
+            form.photo.value = "";
+            self.filename = "";
+            
+        },
+        onFileSelected: function(){
+            let self = this
+            let filenameArr = $("#photo")[0].value.split("\\");
+            self.filename = filenameArr[filenameArr.length-1]
+        }
+    },
+    data: function(){
+        return {
+            errorFlag: false,
+            messageFlag: false,
+            message: [],
+            filename: ""
         }
     }
 });
